@@ -10,39 +10,56 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout
         uses: actions/checkout@v3
 
-      # Install & Test
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # 3️⃣ Install Dependencies
       - name: Install Dependencies
         run: npm install
 
+      # 4️⃣ Run Unit Tests
       - name: Run Unit Tests
         run: npm test
 
-      - name: Coverage Check (80%)
+      # 5️⃣ Check Test Coverage (optional fail if <80%)
+      - name: Coverage Check
         run: |
           npm run coverage
-          # you can fail manually if needed
+          COVERAGE=$(npx jest --coverage --coverageThreshold '{"global": {"branches": 80,"functions": 80,"lines": 80,"statements": 80}}')
+          echo "$COVERAGE"
 
-      # Build Docker Image
+      # 6️⃣ Build Docker Image
       - name: Build Docker Image
         run: docker build -t my-app:latest .
 
-      # Run container for integration test
-      - name: Run Container
+      # 7️⃣ Run container for quick integration test
+      - name: Run Container and Test
         run: |
-          docker run -d -p 3000:80 --name test-container my-app
+          docker run -d -p 3000:80 --name test-container my-app:latest
           sleep 5
-          curl http://localhost:3000
+          curl -f http://localhost:3000
+          docker stop test-container
+          docker rm test-container
 
-      # Push to registry
-      - name: Push to Docker Hub
+      # 8️⃣ Push to Docker Hub
+      - name: Push Docker Hub
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          docker login -u ${{ secrets.USER }} -p ${{ secrets.PASS }}
-          docker tag my-app:latest mydockerhub/my-app:latest
-          docker push mydockerhub/my-app:latest
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker tag my-app:latest $DOCKER_USERNAME/my-app:latest
+          docker push $DOCKER_USERNAME/my-app:latest
 
-      # Deploy
+      # 9️⃣ Deploy to Vercel
       - name: Deploy to Vercel
-        run: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel --prod --token=$VERCEL_TOKEN
