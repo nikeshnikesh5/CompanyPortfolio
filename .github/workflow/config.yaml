@@ -1,0 +1,48 @@
+name: Frontend Docker Pipeline
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # Install & Test
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Unit Tests
+        run: npm test
+
+      - name: Coverage Check (80%)
+        run: |
+          npm run coverage
+          # you can fail manually if needed
+
+      # Build Docker Image
+      - name: Build Docker Image
+        run: docker build -t my-app:latest .
+
+      # Run container for integration test
+      - name: Run Container
+        run: |
+          docker run -d -p 3000:80 --name test-container my-app
+          sleep 5
+          curl http://localhost:3000
+
+      # Push to registry
+      - name: Push to Docker Hub
+        run: |
+          docker login -u ${{ secrets.USER }} -p ${{ secrets.PASS }}
+          docker tag my-app:latest mydockerhub/my-app:latest
+          docker push mydockerhub/my-app:latest
+
+      # Deploy
+      - name: Deploy to Vercel
+        run: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
