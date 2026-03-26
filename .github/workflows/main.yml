@@ -49,14 +49,17 @@ jobs:
           docker rm test-container
 
       # 8️⃣ Push to Docker Hub
-      - name: Push Docker Hub
+      - name: Push to Docker Hub
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-          docker tag my-app:latest $DOCKER_USERNAME/my-app:latest
-          docker push $DOCKER_USERNAME/my-app:latest
+          # Use printf to avoid trailing newline issues and TTY errors
+          printf '%s' "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          
+          # Tag and Push
+          docker tag my-app:latest "$DOCKER_USERNAME/my-app:latest"
+          docker push "$DOCKER_USERNAME/my-app:latest"
 
       # 9️⃣ Deploy to Vercel
       - name: Deploy to Vercel
