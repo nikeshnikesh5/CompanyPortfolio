@@ -1,4 +1,4 @@
-ame: Frontend Docker Pipeline
+name: Frontend Docker Pipeline
 
 on:
   pull_request:
