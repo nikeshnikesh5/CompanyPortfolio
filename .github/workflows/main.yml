@@ -1,4 +1,4 @@
-name: Frontend Docker Pipeline
+ame: Frontend Docker Pipeline
 
 on:
   pull_request:
@@ -34,7 +34,6 @@ jobs:
           npm run coverage
           COVERAGE=$(npx jest --coverage --coverageThreshold '{"global": {"branches": 80,"functions": 80,"lines": 80,"statements": 80}}')
           echo "$COVERAGE"
-
       # 6️⃣ Build Docker Image
       - name: Build Docker Image
         run: docker build -t my-app:latest .
@@ -47,7 +46,6 @@ jobs:
           curl -f http://localhost:3000
           docker stop test-container
           docker rm test-container
-
       # 8️⃣ Push to Docker Hub
       - name: Push Docker Hub
         env:
@@ -57,7 +55,6 @@ jobs:
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker tag my-app:latest $DOCKER_USERNAME/my-app:latest
           docker push $DOCKER_USERNAME/my-app:latest
-
       # 9️⃣ Deploy to Vercel
       - name: Deploy to Vercel
         env:
