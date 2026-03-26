@@ -9,7 +9,7 @@
     "test": "jest",
     "lint": "eslint",
     "coverage": "jest --coverage"
-  }  ,
+  },
   "dependencies": {
     "next": "16.2.1",
     "react": "19.2.4",
@@ -32,6 +32,7 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   },
+  "jest": {
     "coverageDirectory": "coverage",
     "coverageThreshold": {
       "global": {
@@ -40,6 +41,7 @@
         "lines": 80,
         "statements": 80
       }
-    }
+    },
+    "testEnvironment": "jsdom"
   }
 }
